@@ -33,8 +33,6 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			: ldata(std::move(data))
 		{}
 
-		friend std::ostream& operator<<(std::ostream &stream, const NodePtr node);
-
 		void print(std::ostream &stream)
 		{
 			stream << ldata->key;
