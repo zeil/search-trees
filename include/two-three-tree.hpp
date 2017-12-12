@@ -65,7 +65,6 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 				subtree->ldata = std::move(node->ldata);
 				subtree->left = std::move( node->left);
 				subtree->middle = std::move(node->right);
-				node.reset();
 			} else {
 			}
 		} else if (subtree->rdata && node->ldata->key <= subtree->rdata->key) {
@@ -76,7 +75,6 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 				subtree->rdata = std::move(node->ldata);
 				subtree->middle = std::move(node->left);
 				subtree->right = std::move(node->right);
-				node.reset();
 			} else {
 			}
 		}
