@@ -63,7 +63,7 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			if (!subtree->rdata) {
 				subtree->rdata = std::move(subtree->ldata);
 				subtree->ldata = std::move(node->ldata);
-				subtree->left = std::move( node->left);
+				subtree->left = std::move(node->left);
 				subtree->middle = std::move(node->right);
 			} else {
 			}
