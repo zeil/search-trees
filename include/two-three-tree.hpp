@@ -27,7 +27,7 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 	struct Node
 	{
 		DataPtr ldata, rdata;
-		NodePtr left, right, middle;
+		NodePtr left, middle, right;
 
 		Node(DataPtr &&data)
 			: ldata(std::move(data))
@@ -60,24 +60,59 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 
 		if (node->ldata->key <= subtree->ldata->key) {
 			insert_into_subtree(std::move(subtree->left), std::move(node));
+			if (!node)
+				return;
 			if (!subtree->rdata) {
 				subtree->rdata = std::move(subtree->ldata);
 				subtree->ldata = std::move(node->ldata);
 				subtree->left = std::move(node->left);
 				subtree->middle = std::move(node->right);
+				node.reset();
 			} else {
+				auto right = std::make_unique<Node>(std::move(subtree->rdata));
+				right->left = std::move(subtree->middle);
+				right->right = std::move(subtree->right);
+				subtree->left = std::move(node);
+				subtree->right = std::move(right);
+				node = std::move(subtree);
 			}
 		} else if (subtree->rdata && node->ldata->key <= subtree->rdata->key) {
 			insert_into_subtree(std::move(subtree->middle), std::move(node));
+			if (!node)
+				return;
+			auto right = std::make_unique<Node>(std::move(subtree->rdata));
+			right->left = std::move(node->right);
+			right->right = std::move(subtree->right);
+			subtree->right = std::move(node->left);
+			node->left = std::move(subtree);
+			node->right = std::move(right);
+			subtree = std::move(node);
 		} else {
 			insert_into_subtree(std::move(subtree->right), std::move(node));
+			if (!node)
+				return;
 			if (!subtree->rdata) {
 				subtree->rdata = std::move(node->ldata);
 				subtree->middle = std::move(node->left);
 				subtree->right = std::move(node->right);
+				node.reset();
 			} else {
+				auto left = std::make_unique<Node>(std::move(subtree->ldata));
+				left->left = std::move(subtree->left);
+				left->right = std::move(subtree->middle);
+				subtree->ldata = std::move(subtree->rdata);
+				subtree->left = std::move(left);
+				subtree->right = std::move(node);
+				node = std::move(subtree);
 			}
 		}
+	}
+
+	int height()
+	{
+		int h = 0;
+		for (Node *node = root.get(); node; node = node->left.get(), ++h) {}
+		return h - 1;
 	}
 
 public:
@@ -110,5 +145,6 @@ public:
 		else
 			stream << "empty tree";
 		stream << '\n';
+		stream << height();
 	}
 };
