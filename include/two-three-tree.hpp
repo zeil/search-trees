@@ -2,6 +2,7 @@
 
 #include <utility>
 #include <memory>
+#include <string>
 
 #include "search-tree.hpp"
 
@@ -33,9 +34,14 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			: ldata(std::move(data))
 		{}
 
-		void print(std::ostream &stream)
+		void print(std::ostream &stream, const std::string &prefix, bool tail)
 		{
-			stream << ldata->key;
+			static const std::string prefix1 = { (char)192, (char)196, (char)196, (char) 32, 0 }; // "└── "
+			static const std::string prefix2 = { (char)195, (char)196, (char)196, (char) 32, 0 }; // "├── "
+			static const std::string prefix3 = { (char) 32, (char) 32, (char) 32, (char) 32, 0 }; // "    "
+			static const std::string prefix4 = { (char)179, (char) 32, (char) 32, (char) 32, 0 }; // "│   "
+
+			stream << prefix << (tail ? prefix1 : prefix2) << ldata->key;
 			if (rdata) {
 				stream << '|';
 				stream << rdata->key;
@@ -43,11 +49,11 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			stream << '\n';
 
 			if (left)
-				left->print(stream);
+				left->print(stream, prefix + (tail ? prefix3 : prefix4), !middle && !right);
 			if (middle)
-				middle->print(stream);
+				middle->print(stream, prefix + (tail ? prefix3 : prefix4), !right);
 			if (right)
-				right->print(stream);
+				right->print(stream, prefix + (tail ? prefix3 : prefix4), true);
 		}
 	};
 
@@ -83,10 +89,12 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			auto right = std::make_unique<Node>(std::move(subtree->rdata));
 			right->left = std::move(node->right);
 			right->right = std::move(subtree->right);
-			subtree->right = std::move(node->left);
-			node->left = std::move(subtree);
-			node->right = std::move(right);
-			subtree = std::move(node);
+			subtree->ldata.swap(node->ldata);
+			node->right = std::move(node->left);
+			node->left = std::move(subtree->left);
+			subtree->left = std::move(node);
+			subtree->right = std::move(right);
+			node = std::move(subtree);
 		} else {
 			insert_into_subtree(std::move(subtree->right), std::move(node));
 			if (!node)
@@ -108,13 +116,6 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 		}
 	}
 
-	int height()
-	{
-		int h = 0;
-		for (Node *node = root.get(); node; node = node->left.get(), ++h) {}
-		return h - 1;
-	}
-
 public:
 	void insert(Key &&key, Value &&value) override final
 	{
@@ -123,6 +124,8 @@ public:
 		if (root) {
 			auto node = std::make_unique<Node>(std::move(data));
 			insert_into_subtree(std::move(root), std::move(node));
+			if (!root)
+				root = std::move(node);
 		} else {
 			root = std::make_unique<Node>(std::move(data));
 		}
@@ -141,10 +144,9 @@ public:
 	virtual void print(std::ostream &stream) override final
 	{
 		if (root)
-			root->print(stream);
+			root->print(stream, "", true);
 		else
 			stream << "empty tree";
 		stream << '\n';
-		stream << height();
 	}
 };
