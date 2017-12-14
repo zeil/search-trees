@@ -36,10 +36,17 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 
 		void print(std::ostream &stream, const std::string &prefix, bool tail)
 		{
+		#ifdef _WIN32
 			static const std::string prefix1 = { (char)192, (char)196, (char)196, (char) 32, 0 }; // "└── "
 			static const std::string prefix2 = { (char)195, (char)196, (char)196, (char) 32, 0 }; // "├── "
 			static const std::string prefix3 = { (char) 32, (char) 32, (char) 32, (char) 32, 0 }; // "    "
 			static const std::string prefix4 = { (char)179, (char) 32, (char) 32, (char) 32, 0 }; // "│   "
+		#else
+			static const std::string prefix1 = "└── ";
+			static const std::string prefix2 = "├── ";
+			static const std::string prefix3 = "    ";
+			static const std::string prefix4 = "│   ";
+		#endif
 
 			stream << prefix << (tail ? prefix1 : prefix2) << ldata->key;
 			if (rdata) {
