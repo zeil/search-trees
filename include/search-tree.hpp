@@ -2,6 +2,9 @@
 
 #include <ostream>
 
+namespace search_trees
+{
+
 template<typename Key, typename Value>
 class SearchTree
 {
@@ -15,3 +18,5 @@ public:
 
 	virtual void print(std::ostream &stream) = 0;
 };
+
+} // namespace search_trees

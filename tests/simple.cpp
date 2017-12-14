@@ -6,6 +6,8 @@
 
 #include "two-three-tree.hpp"
 
+using namespace search_trees;
+
 int main()
 {
 	std::unique_ptr<SearchTree<char, int>> tree1 = std::make_unique<TwoThreeTree<char, int>>();

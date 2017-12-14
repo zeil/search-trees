@@ -5,18 +5,10 @@
 #include <string>
 
 #include "search-tree.hpp"
+#include "util.hpp"
 
-#if __cplusplus < 201402L
-namespace std
+namespace search_trees
 {
-// https://herbsutter.com/gotw/_102/
-template<typename T, typename ...Args>
-std::unique_ptr<T> make_unique( Args&& ...args )
-{
-	return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
-}
-} // namespace std
-#endif // __cplusplus < 201402L
 
 template<typename Key, typename Value>
 class TwoThreeTree final: public SearchTree<Key, Value>
@@ -185,3 +177,5 @@ public:
 		stream << '\n';
 	}
 };
+
+} // namespace search_trees
