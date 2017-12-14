@@ -23,9 +23,9 @@ int main()
 	tree1->insert('S', 0);
 	tree1->print(std::cout);
 
-	std::unique_ptr<SearchTree<char, int>> tree2 = std::make_unique<TwoThreeTree<char, int>>();
-	for (char c = 'A'; c <= 'Z'; ++c)
-		tree2->insert(c, 0);
+	std::unique_ptr<SearchTree<int, int>> tree2 = std::make_unique<TwoThreeTree<int, int>>();
+	for (int i = 1; i <= 32; ++i)
+		tree2->insert(i, 0);
 	tree2->print(std::cout);
 
 #ifdef _WIN32
