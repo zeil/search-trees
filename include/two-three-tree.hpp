@@ -18,14 +18,24 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 		Key key;
 		Value value;
 
-		Data(Key &&k, Value &&v)
-			: key(std::move(k))
-			, value (std::move(v))
-		{}
-
 		Data(const Key &k, const Value &v)
 			: key(k)
 			, value(v)
+		{}
+
+		Data(const Key &k, Value &&v)
+			: key(k)
+			, value(std::move(v))
+		{}
+
+		Data(Key &&k, const Value &v)
+			: key(std::move(k))
+			, value(v)
+		{}
+
+		Data(Key &&k, Value &&v)
+			: key(std::move(k))
+			, value (std::move(v))
 		{}
 	};
 
@@ -149,6 +159,16 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 
 public:
 	void insert(const Key &key, const Value &value) override final
+	{
+		insert_impl(key, value);
+	}
+
+	void insert(const Key &key, Value &&value) override final
+	{
+		insert_impl(key, value);
+	}
+
+	void insert(Key &&key, const Value &value) override final
 	{
 		insert_impl(key, value);
 	}
