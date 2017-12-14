@@ -30,6 +30,11 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			: key(std::move(k))
 			, value (std::move(v))
 		{}
+
+		Data(const Key &k, const Value &v)
+			: key(k)
+			, value(v)
+		{}
 	};
 
 	using DataPtr = std::unique_ptr<Data>;
@@ -135,10 +140,10 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 		}
 	}
 
-public:
-	void insert(Key &&key, Value &&value) override final
+	template<typename KeyT, typename ValueT>
+	void insert_impl(KeyT &&key, ValueT &&value)
 	{
-		auto data = std::make_unique<Data>(std::move(key), std::move(value));
+		auto data = std::make_unique<Data>(std::forward<KeyT>(key), std::forward<ValueT>(value));
 
 		if (root) {
 			auto node = std::make_unique<Node>(std::move(data));
@@ -148,6 +153,17 @@ public:
 		} else {
 			root = std::make_unique<Node>(std::move(data));
 		}
+	}
+
+public:
+	void insert(const Key &key, const Value &value) override final
+	{
+		insert_impl(key, value);
+	}
+
+	void insert(Key &&key, Value &&value) override final
+	{
+		insert_impl(key, value);
 	}
 
 	bool remove(const Key &key) override final

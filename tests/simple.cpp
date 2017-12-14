@@ -8,18 +8,22 @@
 
 int main()
 {
-	TwoThreeTree<char, int> tree;
-	tree.insert('A', 0);
-	tree.insert('L', 0);
-	tree.insert('G', 0);
-	tree.insert('O', 0);
-	tree.insert('R', 0);
-	tree.insert('I', 0);
-	tree.insert('T', 0);
-	tree.insert('H', 0);
-	tree.insert('M', 0);
-	tree.insert('S', 0);
-	tree.print(std::cout);
+	TwoThreeTree<char, int> tree1, tree2;
+	tree1.insert('A', 0);
+	tree1.insert('L', 0);
+	tree1.insert('G', 0);
+	tree1.insert('O', 0);
+	tree1.insert('R', 0);
+	tree1.insert('I', 0);
+	tree1.insert('T', 0);
+	tree1.insert('H', 0);
+	tree1.insert('M', 0);
+	tree1.insert('S', 0);
+	tree1.print(std::cout);
+
+	for (char c = 'A'; c <= 'Z'; ++c)
+		tree2.insert(c, 0);
+	tree2.print(std::cout);
 
 #ifdef _WIN32
 	_CrtDumpMemoryLeaks();
