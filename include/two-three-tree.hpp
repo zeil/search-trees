@@ -74,12 +74,12 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			}
 			stream << '\n';
 
-			if (left)
-				left->print(stream, prefix + (tail ? prefix3 : prefix4), !middle && !right);
-			if (middle)
-				middle->print(stream, prefix + (tail ? prefix3 : prefix4), !right);
 			if (right)
-				right->print(stream, prefix + (tail ? prefix3 : prefix4), true);
+				right->print(stream, prefix + (tail ? prefix3 : prefix4), !middle && !left);
+			if (middle)
+				middle->print(stream, prefix + (tail ? prefix3 : prefix4), !left);
+			if (left)
+				left->print(stream, prefix + (tail ? prefix3 : prefix4), true);
 		}
 	};
 
