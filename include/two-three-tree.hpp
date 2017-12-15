@@ -157,7 +157,7 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 	TwoThreeTree() = default;
 
 public:
-	static std::unique_ptr<SearchTree<Key, Value>> create()
+	static SearchTreePtr<Key, Value> create()
 	{
 		return std::unique_ptr<TwoThreeTree<Key, Value>>(new TwoThreeTree<Key, Value>());
 	}

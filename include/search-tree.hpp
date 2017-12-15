@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <ostream>
 
 namespace search_trees
@@ -21,5 +22,8 @@ public:
 
 	virtual void print(std::ostream &stream) = 0;
 };
+
+template<typename Key, typename Value>
+using SearchTreePtr = std::unique_ptr<SearchTree<Key, Value>>;
 
 } // namespace search_trees
