@@ -115,12 +115,9 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			auto right = std::make_unique<Node>(std::move(subtree->rdata));
 			right->left = std::move(node->right);
 			right->right = std::move(subtree->right);
-			subtree->ldata.swap(node->ldata);
-			node->right = std::move(node->left);
-			node->left = std::move(subtree->left);
-			subtree->left = std::move(node);
-			subtree->right = std::move(right);
-			node = std::move(subtree);
+			subtree->right = std::move(node->left);
+			node->left = std::move(subtree);
+			node->right = std::move(right);
 		} else {
 			insert_into_subtree(std::move(subtree->right), std::move(node));
 			if (!node)
