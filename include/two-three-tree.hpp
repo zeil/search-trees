@@ -154,7 +154,14 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 		}
 	}
 
+	TwoThreeTree() = default;
+
 public:
+	static std::unique_ptr<SearchTree<Key, Value>> create()
+	{
+		return std::unique_ptr<TwoThreeTree<Key, Value>>(new TwoThreeTree<Key, Value>());
+	}
+
 	void insert(const Key &key, const Value &value) override final
 	{
 		insert_impl(key, value);

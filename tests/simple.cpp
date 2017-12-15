@@ -10,7 +10,7 @@ using namespace search_trees;
 
 int main()
 {
-	std::unique_ptr<SearchTree<char, int>> tree1 = std::make_unique<TwoThreeTree<char, int>>();
+	auto tree1 = TwoThreeTree<char, int>::create();
 	tree1->insert('A', 0);
 	tree1->insert('L', 0);
 	tree1->insert('G', 0);
@@ -23,7 +23,7 @@ int main()
 	tree1->insert('S', 0);
 	tree1->print(std::cout);
 
-	std::unique_ptr<SearchTree<int, int>> tree2 = std::make_unique<TwoThreeTree<int, int>>();
+	auto tree2 = TwoThreeTree<int, int>::create();
 	for (int i = 1; i <= 32; ++i)
 		tree2->insert(i, 0);
 	tree2->print(std::cout);
