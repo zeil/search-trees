@@ -53,6 +53,11 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			: ldata(std::move(data))
 		{}
 
+		bool is_three()
+		{
+			return rdata != nullptr;
+		}
+
 		void print(std::ostream &stream, const std::string &prefix, bool tail)
 		{
 		#ifdef _WIN32
@@ -94,7 +99,7 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			insert_into_subtree(std::move(subtree->left), std::move(node));
 			if (!node)
 				return;
-			if (!subtree->rdata) {
+			if (!subtree->is_three()) {
 				subtree->rdata = std::move(subtree->ldata);
 				subtree->ldata = std::move(node->ldata);
 				subtree->left = std::move(node->left);
@@ -108,7 +113,7 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 				subtree->right = std::move(right);
 				node = std::move(subtree);
 			}
-		} else if (subtree->rdata && node->ldata->key <= subtree->rdata->key) {
+		} else if (node->is_three() && node->ldata->key <= subtree->rdata->key) {
 			insert_into_subtree(std::move(subtree->middle), std::move(node));
 			if (!node)
 				return;
@@ -122,7 +127,7 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			insert_into_subtree(std::move(subtree->right), std::move(node));
 			if (!node)
 				return;
-			if (!subtree->rdata) {
+			if (!subtree->is_three()) {
 				subtree->rdata = std::move(node->ldata);
 				subtree->middle = std::move(node->left);
 				subtree->right = std::move(node->right);
@@ -154,6 +159,39 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 		}
 	}
 
+	std::pair<Node *, bool> find_node(const NodePtr &subtree, const Key &key) const
+	{
+		if (!subtree)
+			return std::make_pair(nullptr, false);
+
+		if (key == subtree->ldata->key) {
+			return std::make_pair(subtree.get(), true);
+		} else if (subtree->is_three() && key == subtree->rdata->key) {
+			return std::make_pair(subtree.get(), false);
+		} else if (key < subtree->ldata->key) {
+			return find_node(subtree->left, key);
+		} else if (subtree->is_three() && key < subtree->rdata->key) {
+			return find_node(subtree->middle, key);
+		} else {
+			return find_node(subtree->right, key);
+		}
+	}
+
+	Value *find_impl(const Key &key) const
+	{
+		auto found = find_node(root, key);
+		auto node = found.first;
+		if (node) {
+			auto ldata = found.second;
+			if (ldata)
+				return &node->ldata->value;
+			else
+				return &node->rdata->value;
+		}
+
+		return nullptr;
+	}
+
 	TwoThreeTree() = default;
 
 public:
@@ -182,14 +220,19 @@ public:
 		insert_impl(key, value);
 	}
 
-	bool remove(const Key &key) override final
+	const Value *find(const Key &key) const override final
 	{
-		return false;
+		return find_impl(key);
 	}
 
 	Value *find(const Key &key) override final
 	{
-		return nullptr;
+		return find_impl(key);
+	}
+
+	bool remove(const Key &key) override final
+	{
+		return false;
 	}
 
 	virtual void print(std::ostream &stream) override final

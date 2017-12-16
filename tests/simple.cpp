@@ -3,6 +3,7 @@
 #endif
 
 #include <iostream>
+#include <assert.h>
 
 #include "two-three-tree.hpp"
 
@@ -11,22 +12,30 @@ using namespace search_trees;
 int main()
 {
 	auto tree1 = TwoThreeTree<char, int>::create();
-	tree1->insert('A', 0);
-	tree1->insert('L', 0);
-	tree1->insert('G', 0);
-	tree1->insert('O', 0);
-	tree1->insert('R', 0);
-	tree1->insert('I', 0);
-	tree1->insert('T', 0);
-	tree1->insert('H', 0);
-	tree1->insert('M', 0);
-	tree1->insert('S', 0);
+	tree1->insert('A', 1);
+	tree1->insert('L', 2);
+	tree1->insert('G', 3);
+	tree1->insert('O', 4);
+	tree1->insert('R', 5);
+	tree1->insert('I', 6);
+	tree1->insert('T', 7);
+	tree1->insert('H', 8);
+	tree1->insert('M', 9);
+	tree1->insert('S', 10);
 	tree1->print(std::cout);
 
 	auto tree2 = TwoThreeTree<int, int>::create();
-	for (int i = 1; i <= 32; ++i)
-		tree2->insert(i, 0);
+	const int nodes_count = 32;
+	for (int i = 1; i <= nodes_count; ++i)
+		tree2->insert(i, i);
 	tree2->print(std::cout);
+
+	for (int i = 1; i <= nodes_count; ++i) {
+		auto found = tree2->find(i);
+		assert(found && *found == i);
+	}
+	auto found = tree2->find(nodes_count + 1);
+	assert(!found);
 
 #ifdef _WIN32
 	_CrtDumpMemoryLeaks();
