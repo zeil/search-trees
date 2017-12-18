@@ -1,5 +1,6 @@
 #pragma once
 
+#ifndef _WIN32
 #if __cplusplus < 201402L
 namespace std
 {
@@ -11,3 +12,4 @@ std::unique_ptr<T> make_unique( Args&& ...args )
 }
 } // namespace std
 #endif // __cplusplus < 201402L
+#endif // !_WIN32
