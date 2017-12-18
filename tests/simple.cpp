@@ -9,38 +9,52 @@
 
 using namespace search_trees;
 
-int main()
+static void visual_test()
 {
 	const std::string keys = "ALGORITHMS";
 
-	auto tree1 = TwoThreeTree<char, int>::create();
-	for (auto c: keys)
-		tree1->insert(c, 0);
-	tree1->print(std::cout);
+	auto tree = TwoThreeTree<char, int>::create();
+	for (auto c : keys) {
+		std::cout << "Insert '" << c << "':" << std::endl;
+		tree->insert(c, 0);
+		tree->print(std::cout);
+	}
 
-	tree1->remove('A');
-	tree1->remove('L');
-	tree1->remove('G');
-	tree1->remove('O');
-	tree1->print(std::cout);
+	for (auto c : keys) {
+		std::cout << "Remove '" << c << "':" << std::endl;
+		assert(tree->remove(c));
+		tree->print(std::cout);
+	}
+}
 
-	// for (auto c: keys) {
-	// 	tree1->remove(c);
-	// 	tree1->print(std::cout);
-	// }
+static void big_test()
+{
+	const int nodes_count = 1024;
 
-	// auto tree2 = TwoThreeTree<int, int>::create();
-	// const int nodes_count = 32;
-	// for (int i = 1; i <= nodes_count; ++i)
-	// 	tree2->insert(i, i);
-	// tree2->print(std::cout);
+	auto tree = TwoThreeTree<int, int>::create();
+	for (int i = 1; i <= nodes_count; ++i)
+		tree->insert(i, i);
 
-	// for (int i = 1; i <= nodes_count; ++i) {
-	// 	auto found = tree2->find(i);
-	// 	assert(found && *found == i);
-	// }
-	// auto found = tree2->find(nodes_count + 1);
-	// assert(!found);
+	for (int i = 1; i <= nodes_count; ++i) {
+		auto found = tree->find(i);
+		assert(found && *found == i);
+	}
+
+	for (int i = 1; i <= nodes_count; ++i) {
+		assert(tree->remove(i));
+		for (int j = 1; j <= i; ++j)
+			assert(!tree->find(j));
+		for (int j = i + 1; j <= nodes_count; ++j) {
+			auto found = tree->find(j);
+			assert(found && *found == j);
+		}
+	}
+}
+
+int main()
+{
+	visual_test();
+	big_test();
 
 #ifdef _WIN32
 	_CrtDumpMemoryLeaks();
