@@ -276,11 +276,10 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 					parent->set_left(std::move(parent->right));
 					remove_hole(parent);
 				} else {
-					auto left = std::make_unique<Node>(std::move(parent->ldata));
-					left->set_left(std::move(hole->left));
+					auto &left = parent->left;
+					left->ldata = std::move(parent->ldata);
 					left->set_right(std::move(sibling->left));
 					parent->ldata = std::move(sibling->ldata);
-					parent->set_left(std::move(left));
 					sibling->ldata = std::move(sibling->rdata);
 					sibling->set_left(std::move(sibling->middle));
 				}
@@ -293,11 +292,11 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 					parent->right.reset();
 					remove_hole(parent);
 				} else {
-					auto right = std::make_unique<Node>(std::move(parent->ldata));
+					auto &right = parent->right;
+					right->ldata = std::move(parent->ldata);
+					right->set_right(std::move(right->left));
 					right->set_left(std::move(sibling->right));
-					right->set_right(std::move(hole->left));
 					parent->ldata = std::move(sibling->rdata);
-					parent->set_right(std::move(right));
 					sibling->set_right(std::move(sibling->middle));
 				}
 			}
@@ -312,10 +311,9 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 					parent->ldata = std::move(parent->rdata);
 					parent->set_left(std::move(parent->middle));
 				} else {
-					auto left = std::make_unique<Node>(std::move(parent->ldata));
-					left->set_left(std::move(hole->left));
+					auto &left = parent->left;
+					left->ldata = std::move(parent->ldata);
 					left->set_right(std::move(sibling->left));
-					left->parent = parent;
 					parent->ldata = std::move(sibling->ldata);
 					sibling->ldata = std::move(sibling->rdata);
 					sibling->set_left(std::move(sibling->middle));
@@ -329,12 +327,11 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 					parent->ldata = std::move(parent->rdata);
 					parent->middle.reset();
 				} else {
-					auto middle = std::make_unique<Node>(std::move(parent->ldata));
+					auto &middle = parent->middle;
+					middle->ldata = std::move(parent->ldata);
+					middle->set_right(std::move(middle->left));
 					middle->set_left(std::move(sibling->right));
-					middle->set_right(std::move(hole->left));
-					middle->parent = parent;
 					parent->ldata = std::move(sibling->rdata);
-					parent->set_middle(std::move(middle));
 					sibling->set_right(std::move(sibling->middle));
 				}
 			} else {
@@ -345,10 +342,10 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 					sibling->set_right(std::move(hole->left));
 					parent->set_right(std::move(parent->middle));
 				} else {
-					auto right = std::make_unique<Node>(std::move(parent->rdata));
+					auto &right = parent->right;
+					right->ldata = std::move(parent->rdata);
+					right->set_right(std::move(right->left));
 					right->set_left(std::move(sibling->right));
-					right->set_right(std::move(hole->left));
-					right->parent = parent;
 					parent->rdata = std::move(sibling->rdata);
 					sibling->set_right(std::move(sibling->middle));
 				}

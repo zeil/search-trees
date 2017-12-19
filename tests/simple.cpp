@@ -33,11 +33,11 @@ static void big_test()
 
 	auto tree = TwoThreeTree<int, int>::create();
 	for (int i = 1; i <= nodes_count; ++i)
-		tree->insert(i, i);
+		tree->insert(i, 2 * i);
 
 	for (int i = 1; i <= nodes_count; ++i) {
 		auto found = tree->find(i);
-		assert(found && *found == i);
+		assert(found && *found == 2 * i);
 	}
 
 	for (int i = 1; i <= nodes_count; ++i) {
@@ -46,7 +46,7 @@ static void big_test()
 			assert(!tree->find(j));
 		for (int j = i + 1; j <= nodes_count; ++j) {
 			auto found = tree->find(j);
-			assert(found && *found == j);
+			assert(found && *found == 2 * j);
 		}
 	}
 }
