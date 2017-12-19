@@ -2,6 +2,7 @@
 #define _CRTDBG_MAP_ALLOC
 #endif
 
+#include <functional>
 #include <iostream>
 #include <assert.h>
 
@@ -9,11 +10,15 @@
 
 using namespace search_trees;
 
-static void visual_test()
+template<typename Key, typename Value>
+using SearchTreeFactory = std::function<SearchTreePtr<Key, Value>(void)>;
+
+template<typename Key, typename Value>
+static void visual_test(SearchTreeFactory<Key, Value> factory)
 {
 	const std::string keys = "ALGORITHMS";
 
-	auto tree = TwoThreeTree<char, int>::create();
+	auto tree = factory();
 	for (auto c : keys) {
 		std::cout << "Insert '" << c << "':" << std::endl;
 		tree->insert(c, 0);
@@ -27,11 +32,12 @@ static void visual_test()
 	}
 }
 
-static void big_test()
+template<typename Key, typename Value>
+static void big_test(SearchTreeFactory<Key, Value> factory)
 {
 	const int nodes_count = 1024;
 
-	auto tree = TwoThreeTree<int, int>::create();
+	auto tree = factory();
 	for (int i = 1; i <= nodes_count; ++i)
 		tree->insert(i, 2 * i);
 
@@ -53,8 +59,9 @@ static void big_test()
 
 int main()
 {
-	visual_test();
-	big_test();
+	SearchTreeFactory<int, int> factory = TwoThreeTree<int, int>::create;
+	visual_test(factory);
+	big_test(factory);
 
 #ifdef _WIN32
 	_CrtDumpMemoryLeaks();
