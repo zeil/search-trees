@@ -4,36 +4,36 @@
 
 #include <functional>
 #include <iostream>
+#include <fstream>
 #include <assert.h>
 
 #include "two-three-tree.hpp"
+#include "red-black-tree.hpp"
 
 using namespace search_trees;
 
 template<typename Key, typename Value>
 using SearchTreeFactory = std::function<SearchTreePtr<Key, Value>(void)>;
 
-template<typename Key, typename Value>
-static void visual_test(SearchTreeFactory<Key, Value> factory)
+static void visual_test(SearchTreeFactory<char, int> factory, std::ostream &stream)
 {
 	const std::string keys = "ALGORITHMS";
 
 	auto tree = factory();
 	for (auto c : keys) {
-		std::cout << "Insert '" << c << "':" << std::endl;
+		stream << "Insert '" << c << "':" << '\n';
 		tree->insert(c, 0);
-		tree->print(std::cout);
+		tree->print(stream);
 	}
 
 	for (auto c : keys) {
-		std::cout << "Remove '" << c << "':" << std::endl;
+		stream << "Remove '" << c << "':" << '\n';
 		assert(tree->remove(c));
-		tree->print(std::cout);
+		tree->print(stream);
 	}
 }
 
-template<typename Key, typename Value>
-static void big_test(SearchTreeFactory<Key, Value> factory)
+static void big_test(SearchTreeFactory<int, int> factory)
 {
 	const int nodes_count = 1024;
 
@@ -59,8 +59,15 @@ static void big_test(SearchTreeFactory<Key, Value> factory)
 
 int main()
 {
+	//std::ofstream file("test.txt", std::ofstream::out);
+	//std::ostream &stream = file;
+	//std::ostream &stream = std::cout;
+
+	//SearchTreeFactory<char, int> factory = TwoThreeTree<char, int>::create;
+	//SearchTreeFactory<char, int> factory = RedBlackTree<char, int>::create;
+	//visual_test(factory, stream);
+
 	SearchTreeFactory<int, int> factory = TwoThreeTree<int, int>::create;
-	visual_test(factory);
 	big_test(factory);
 
 #ifdef _WIN32

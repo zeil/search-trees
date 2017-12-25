@@ -1,10 +1,10 @@
 #pragma once
 
 #include <utility>
-#include <memory>
 #include <string>
 
 #include "search-tree.hpp"
+#include "data.hpp"
 #include "util.hpp"
 
 namespace search_trees
@@ -13,44 +13,16 @@ namespace search_trees
 template<typename Key, typename Value>
 class TwoThreeTree final: public SearchTree<Key, Value>
 {
-	struct Data
-	{
-		Key key;
-		Value value;
-
-		Data(const Key &k, const Value &v)
-			: key(k)
-			, value(v)
-		{}
-
-		Data(const Key &k, Value &&v)
-			: key(k)
-			, value(std::move(v))
-		{}
-
-		Data(Key &&k, const Value &v)
-			: key(std::move(k))
-			, value(v)
-		{}
-
-		Data(Key &&k, Value &&v)
-			: key(std::move(k))
-			, value (std::move(v))
-		{}
-	};
-
-	using DataPtr = std::unique_ptr<Data>;
-
 	struct Node;
 	using NodePtr = std::unique_ptr<Node>;
 
 	struct Node
 	{
-		DataPtr ldata, rdata;
+		DataPtr<Key, Value> ldata, rdata;
 		NodePtr left, middle, right;
 		Node *parent;
 
-		Node(DataPtr &&data)
+		Node(DataPtr<Key, Value> &&data)
 			: ldata(std::move(data))
 			, parent(nullptr)
 		{}
@@ -81,6 +53,66 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			if (node)
 				node->parent = this;
 			right = std::move(node);
+		}
+
+		std::pair<Node *, bool> find(const Key &key)
+		{
+			if (key == ldata->key) {
+				return std::make_pair(this, true);
+			} else if (is_three() && key == rdata->key) {
+				return std::make_pair(this, false);
+			} else if (key < ldata->key) {
+				if (left)
+					return left->find(key);
+				else
+					return std::make_pair(nullptr, false);
+			} else if (is_three() && key < rdata->key) {
+				if (middle)
+					return middle->find(key);
+				else
+					return std::make_pair(nullptr, false);
+			} else {
+				if (right)
+					return right->find(key);
+				else
+					return std::make_pair(nullptr, false);
+			}
+		}
+
+		Node *max()
+		{
+			if (!right)
+				return this;
+
+			auto r = right.get();
+			for (; r->right; r = r->right.get());
+			return r;
+		}
+
+		Node *min()
+		{
+			if (!left)
+				return this;
+
+			auto l = left.get();
+			for (; l->left; l = l->left.get());
+			return l;
+		}
+
+		Node *predecessor()
+		{
+			if (!left)
+				return nullptr;
+
+			return left->max();
+		}
+
+		Node *successor()
+		{
+			if (!right)
+				return nullptr;
+
+			return right->min();
 		}
 
 		void print(std::ostream &stream, const std::string &prefix, bool tail)
@@ -115,7 +147,7 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 
 	NodePtr root;
 
-	void insert_into_subtree(NodePtr &&subtree, NodePtr &&node)
+	static void insert_into_subtree(NodePtr &&subtree, NodePtr &&node)
 	{
 		if (!subtree)
 			return;
@@ -173,7 +205,7 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 	template<typename KeyT, typename ValueT>
 	void insert_impl(KeyT &&key, ValueT &&value)
 	{
-		auto data = std::make_unique<Data>(std::forward<KeyT>(key), std::forward<ValueT>(value));
+		auto data = std::make_unique<Data<Key, Value>>(std::forward<KeyT>(key), std::forward<ValueT>(value));
 
 		if (root) {
 			auto node = std::make_unique<Node>(std::move(data));
@@ -185,73 +217,21 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 		}
 	}
 
-	std::pair<Node *, bool> find_node(const NodePtr &subtree, const Key &key) const
-	{
-		if (!subtree)
-			return std::make_pair(nullptr, false);
-
-		if (key == subtree->ldata->key) {
-			return std::make_pair(subtree.get(), true);
-		} else if (subtree->is_three() && key == subtree->rdata->key) {
-			return std::make_pair(subtree.get(), false);
-		} else if (key < subtree->ldata->key) {
-			return find_node(subtree->left, key);
-		} else if (subtree->is_three() && key < subtree->rdata->key) {
-			return find_node(subtree->middle, key);
-		} else {
-			return find_node(subtree->right, key);
-		}
-	}
-
 	Value *find_impl(const Key &key) const
 	{
-		auto found = find_node(root, key);
-		auto node = found.first;
-		if (node) {
-			auto ldata = found.second;
-			if (ldata)
-				return &node->ldata->value;
-			else
-				return &node->rdata->value;
+		if (root) {
+			auto found = root->find(key);
+			auto node = found.first;
+			if (node) {
+				auto ldata = found.second;
+				if (ldata)
+					return &node->ldata->value;
+				else
+					return &node->rdata->value;
+			}
 		}
 
 		return nullptr;
-	}
-
-	Node *find_max(Node *subtree)
-	{
-		if (!subtree)
-			return nullptr;
-
-		while (subtree->right)
-			subtree = subtree->right.get();
-		return subtree;
-	}
-
-	Node *find_min(Node *subtree)
-	{
-		if (!subtree)
-			return nullptr;
-
-		while (subtree->left)
-			subtree = subtree->left.get();
-		return subtree;
-	}
-
-	Node *find_predecessor(Node *node)
-	{
-		if (!node)
-			return nullptr;
-
-		return find_max(node->left.get());
-	}
-
-	Node *find_successor(Node *node)
-	{
-		if (!node)
-			return nullptr;
-
-		return find_min(node->right.get());
 	}
 
 	void remove_hole(Node *hole)
@@ -355,42 +335,46 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 
 	bool remove_impl(const Key &key)
 	{
-		auto found = find_node(root, key);
-		auto node = found.first;
-		if (!node)
-			return false;
+		if (root) {
+			auto found = root->find(key);
+			auto node = found.first;
+			if (!node)
+				return false;
 
-		auto ldata = found.second;
-		if (!node->is_leaf()) {
-			if (ldata) {
-				auto predecessor = find_predecessor(node);
-				if (predecessor->is_three()) {
-					node->ldata = std::move(predecessor->rdata);
+			auto ldata = found.second;
+			if (!node->is_leaf()) {
+				if (ldata) {
+					auto predecessor = node->predecessor();
+					if (predecessor->is_three()) {
+						node->ldata = std::move(predecessor->rdata);
+					} else {
+						node->ldata = std::move(predecessor->ldata);
+						remove_hole(predecessor);
+					}
 				} else {
-					node->ldata = std::move(predecessor->ldata);
-					remove_hole(predecessor);
+					auto successor = node->successor();
+					if (successor->is_three()) {
+						node->rdata = std::move(successor->ldata);
+						successor->ldata = std::move(successor->rdata);
+					} else {
+						node->rdata = std::move(successor->ldata);
+						remove_hole(successor);
+					}
 				}
+			} else if (node->is_three()) {
+				if (ldata)
+					node->ldata = std::move(node->rdata);
+				else
+					node->rdata.reset();
 			} else {
-				auto successor = find_successor(node);
-				if (successor->is_three()) {
-					node->rdata = std::move(successor->ldata);
-					successor->ldata = std::move(successor->rdata);
-				} else {
-					node->rdata = std::move(successor->ldata);
-					remove_hole(successor);
-				}
+				node->ldata.reset();
+				remove_hole(node);
 			}
-		} else if (node->is_three()) {
-			if (ldata)
-				node->ldata = std::move(node->rdata);
-			else
-				node->rdata.reset();
-		} else {
-			node->ldata.reset();
-			remove_hole(node);
+
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
 	TwoThreeTree() = default;
