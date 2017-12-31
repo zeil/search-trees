@@ -27,12 +27,12 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			, parent(nullptr)
 		{}
 
-		bool is_three()
+		bool is_three() const
 		{
 			return rdata != nullptr;
 		}
 
-		bool is_leaf()
+		bool is_leaf() const
 		{
 			return !left;
 		}
@@ -99,7 +99,7 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			return l;
 		}
 
-		Node *predecessor()
+		Node *predecessor() const
 		{
 			if (!left)
 				return nullptr;
@@ -107,7 +107,7 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			return left->max();
 		}
 
-		Node *successor()
+		Node *successor() const
 		{
 			if (!right)
 				return nullptr;
@@ -115,7 +115,7 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			return right->min();
 		}
 
-		void print(std::ostream &stream, const std::string &prefix, bool tail)
+		void print(std::ostream &stream, const std::string &prefix, bool tail) const
 		{
 		#ifdef _WIN32
 			static const std::string prefix1 = { (char)192, (char)196, (char)196, (char) 32, 0 }; // "└── "
