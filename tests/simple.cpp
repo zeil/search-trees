@@ -64,11 +64,12 @@ int main()
 	std::ostream &stream = std::cout;
 
 	//SearchTreeFactory<char, int> factory = TwoThreeTree<char, int>::create;
-	SearchTreeFactory<char, int> factory = RedBlackTree<char, int>::create;
-	visual_test(factory, stream);
+	//SearchTreeFactory<char, int> factory = RedBlackTree<char, int>::create;
+	//visual_test(factory, stream);
 
 	//SearchTreeFactory<int, int> factory = TwoThreeTree<int, int>::create;
-	//big_test(factory);
+	SearchTreeFactory<int, int> factory = RedBlackTree<int, int>::create;
+	big_test(factory);
 
 #ifdef _WIN32
 	_CrtDumpMemoryLeaks();

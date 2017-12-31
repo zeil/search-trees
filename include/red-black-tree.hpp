@@ -62,7 +62,43 @@ class RedBlackTree final: public SearchTree<Key, Value>
 			}
 		}
 
-		void print(std::ostream &stream, const std::string &prefix, bool tail)
+		Node *max()
+		{
+			if (!right)
+				return this;
+
+			auto r = right.get();
+			for (; r->right; r = r->right.get());
+			return r;
+		}
+
+		Node *min()
+		{
+			if (!left)
+				return this;
+
+			auto l = left.get();
+			for (; l->left; l = l->left.get());
+			return l;
+		}
+
+		Node *predecessor() const
+		{
+			if (!left)
+				return nullptr;
+
+			return left->max();
+		}
+
+		Node *successor() const
+		{
+			if (!right)
+				return nullptr;
+
+			return right->min();
+		}
+
+		void print(std::ostream &stream, const std::string &prefix, bool tail) const
 		{
 		#ifdef _WIN32
 			static const std::string prefix1 = { (char)192, (char)196, (char)196, (char) 32, 0 }; // "└── "
@@ -102,7 +138,7 @@ class RedBlackTree final: public SearchTree<Key, Value>
 
 	void resolve_red_red_violation(Node *subtree)
 	{
-		if (!subtree)
+		if (!subtree || subtree->color == Node::Color::BLACK)
 			return;
 
 		auto parent = subtree->parent;
@@ -132,8 +168,8 @@ class RedBlackTree final: public SearchTree<Key, Value>
 			if (subtree->right && subtree->right->color == Node::Color::RED) {
 				auto left = std::move(std::move(parent->right));
 				auto right = std::move(subtree->right);
-				subtree->set_left(std::move(parent->left));
 				subtree->set_right(std::move(subtree->left));
+				subtree->set_left(std::move(parent->left));
 				parent->set_left(std::move(left));
 				parent->set_right(std::move(right));
 				parent->data.swap(parent->left->data);
@@ -202,16 +238,156 @@ class RedBlackTree final: public SearchTree<Key, Value>
 	Value *find_impl(const Key &key) const
 	{
 		if (root) {
-			auto found = root->find(key);
-			if (found)
-				return &found->data->value;
+			auto node = root->find(key);
+			if (node)
+				return &node->data->value;
 		}
 
 		return nullptr;
 	}
 
+	void remove_double_blackness(Node *node, Node *parent)
+	{
+		if (!parent)
+			return;
+
+		if (node && node->color == Node::Color::RED) {
+			node->color = Node::Color::BLACK;
+			return;
+		}
+
+		if (node == parent->left.get()) {
+			auto sibling = parent->right.get();
+			if (sibling) {
+				if (sibling->color == Node::Color::BLACK) {
+					if (sibling->left && sibling->left->color == Node::Color::RED) {
+						auto left = std::move(sibling->left);
+						left->color = Node::Color::BLACK;
+						sibling->set_left(std::move(left->right));
+						left->set_right(std::move(left->left));
+						left->set_left(std::move(parent->left));
+						parent->data.swap(left->data);
+						parent->set_left(std::move(left));
+					} else if (sibling->right && sibling->right->color == Node::Color::RED) {
+						auto right = std::move(sibling->right);
+						right->color = Node::Color::BLACK;
+						sibling->set_right(std::move(sibling->left));
+						sibling->set_left(std::move(parent->left));
+						parent->data.swap(sibling->data);
+						parent->set_left(std::move(parent->right));
+						parent->set_right(std::move(right));
+					} else if ((!sibling->left || (sibling->left && sibling->left->color == Node::Color::BLACK)) &&
+							(!sibling->right || (sibling->right && sibling->right->color == Node::Color::BLACK))) {
+						sibling->color = Node::Color::RED;
+						remove_double_blackness(parent, parent->parent);
+					}
+				} else {
+					auto left = std::move(parent->right);
+					auto right = std::move(sibling->right);
+					sibling->set_right(std::move(sibling->left));
+					sibling->set_left(std::move(parent->left));
+					parent->data.swap(left->data);
+					parent->set_left(std::move(left));
+					parent->set_right(std::move(right));
+					remove_double_blackness(node, sibling);
+				}
+			}
+		} else {
+			auto sibling = parent->left.get();
+			if (sibling) {
+				if (sibling->color == Node::Color::BLACK) {
+					if (sibling->right && sibling->right->color == Node::Color::RED) {
+						auto right = std::move(sibling->right);
+						right->color = Node::Color::BLACK;
+						sibling->set_right(std::move(right->left));
+						right->set_left(std::move(right->right));
+						right->set_right(std::move(parent->right));
+						parent->data.swap(right->data);
+						parent->set_right(std::move(right));
+					} else if (sibling->right && sibling->right->color == Node::Color::RED) {
+						auto left = std::move(sibling->left);
+						left->color = Node::Color::BLACK;
+						sibling->set_left(std::move(sibling->right));
+						sibling->set_right(std::move(parent->right));
+						parent->data.swap(sibling->data);
+						parent->set_right(std::move(parent->left));
+						parent->set_left(std::move(left));
+					} else if ((!sibling->left || (sibling->left && sibling->left->color == Node::Color::BLACK)) &&
+							(!sibling->right || (sibling->right && sibling->right->color == Node::Color::BLACK))) {
+						sibling->color = Node::Color::RED;
+						remove_double_blackness(parent, parent->parent);
+					}
+				} else {
+					auto right = std::move(parent->left);
+					auto left = std::move(sibling->left);
+					sibling->set_left(std::move(sibling->right));
+					sibling->set_right(std::move(parent->right));
+					parent->data.swap(right->data);
+					parent->set_left(std::move(left));
+					parent->set_right(std::move(right));
+					remove_double_blackness(node, sibling);
+				}
+			}
+		}
+	}
+
 	bool remove_impl(const Key &key)
 	{
+		if (root) {
+			auto node = root->find(key);
+			if (!node)
+				return false;
+
+			if (node->left) {
+				auto predecessor = node->predecessor();
+				node->data = std::move(predecessor->data);
+				auto parent = predecessor->parent;
+				auto child = predecessor->left.get();
+				if (child) {
+					if (node == parent)
+						node->set_left(std::move(predecessor->left));
+					else
+						parent->set_right(std::move(predecessor->left));
+				} else {
+					if (predecessor == parent->left.get())
+						parent->left.reset();
+					else
+						parent->right.reset();
+				}
+				remove_double_blackness(child, parent);
+			} else if (node->right) {
+				auto successor = node->successor();
+				node->data = std::move(successor->data);
+				auto parent = successor->parent;
+				auto child = successor->right.get();
+				if (child) {
+					if (node == parent)
+						node->set_right(std::move(successor->right));
+					else
+						parent->set_left(std::move(successor->right));
+				} else {
+					if (successor == parent->left.get())
+						parent->left.reset();
+					else
+						parent->right.reset();
+				}
+				remove_double_blackness(child, parent);
+			} else {
+				auto parent = node->parent;
+				if (parent) {
+					if (node == parent->left.get())
+						parent->left.reset();
+					else
+						parent->right.reset();
+					remove_double_blackness(nullptr, parent);
+				} else {
+					root.reset();
+				}
+			}
+
+			return true;
+		}
+
 		return false;
 	}
 
