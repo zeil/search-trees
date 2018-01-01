@@ -45,6 +45,77 @@ class RedBlackTree final: public SearchTree<Key, Value>
 			right = std::move(node);
 		}
 
+		static void resolve_red_red_violation(Node *node)
+		{
+			if (!node || node->color == Node::Color::BLACK)
+				return;
+
+			auto parent = node->parent;
+			if (!parent)
+				return;
+
+			if (node == parent->left.get()) {
+				if (node->left && node->left->color == Node::Color::RED) {
+					auto left = std::move(node->left);
+					auto right = std::move(parent->left);
+					node->set_left(std::move(node->right));
+					node->set_right(std::move(parent->right));
+					parent->set_left(std::move(left));
+					parent->set_right(std::move(right));
+					parent->data.swap(parent->right->data);
+				} else if (node->right && node->right->color == Node::Color::RED) {
+					auto right = std::move(parent->right);
+					parent->set_right(std::move(node->right));
+					node->set_right(std::move(parent->right->left));
+					parent->right->set_left(std::move(parent->right->right));
+					parent->right->set_right(std::move(right));
+					parent->data.swap(parent->right->data);
+				}
+			} else if (node == parent->right.get()) {
+				if (node->right && node->right->color == Node::Color::RED) {
+					auto left = std::move(std::move(parent->right));
+					auto right = std::move(node->right);
+					node->set_right(std::move(node->left));
+					node->set_left(std::move(parent->left));
+					parent->set_left(std::move(left));
+					parent->set_right(std::move(right));
+					parent->data.swap(parent->left->data);
+				} else if (node->left && node->left->color == Node::Color::RED) {
+					auto left = std::move(parent->left);
+					parent->set_left(std::move(node->left));
+					node->set_left(std::move(parent->left->right));
+					parent->left->set_right(std::move(parent->left->left));
+					parent->left->set_left(std::move(left));
+					parent->data.swap(parent->left->data);
+				}
+			}
+
+			parent->left->color = Node::Color::BLACK;
+			parent->right->color = Node::Color::BLACK;
+			parent->color = Node::Color::RED;
+
+			resolve_red_red_violation(parent->parent);
+		}
+
+		void insert(NodePtr &&node)
+		{
+			if (node->data->key <= data->key) {
+				if (!left) {
+					set_left(std::move(node));
+					resolve_red_red_violation(this);
+				} else {
+					left->insert(std::move(node));
+				}
+			} else {
+				if (!right) {
+					set_right(std::move(node));
+					resolve_red_red_violation(this);
+				} else {
+					right->insert(std::move(node));
+				}
+			}
+		}
+
 		Node *find(const Key &key)
 		{
 			if (key == data->key) {
@@ -98,6 +169,24 @@ class RedBlackTree final: public SearchTree<Key, Value>
 			return right->min();
 		}
 
+		friend std::ostream &operator<<(std::ostream &stream, const Node &node)
+		{
+			if (node.color == Color::RED) {
+			#ifdef _WIN32
+				HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+				SetConsoleTextAttribute(hConsole, 12);
+				stream << node.data->key;
+				SetConsoleTextAttribute(hConsole, 15);
+			#else
+				stream << "\033[31m" << node.data->key << "\033[0m";
+			#endif
+			} else {
+				stream << node.data->key;
+			}
+
+			return stream;
+		}
+
 		void print(std::ostream &stream, const std::string &prefix, bool tail) const
 		{
 		#ifdef _WIN32
@@ -112,20 +201,7 @@ class RedBlackTree final: public SearchTree<Key, Value>
 			static const std::string prefix4 = "│   ";
 		#endif
 
-			stream << prefix << (tail ? prefix1 : prefix2);
-			if (color == Color::RED) {
-			#ifdef _WIN32
-				HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-				SetConsoleTextAttribute(hConsole, 12);
-				stream << data->key;
-				SetConsoleTextAttribute(hConsole, 15);
-			#else
-				stream << "\033[31m" << data->key << "\033[0m";
-			#endif
-			} else {
-				stream << data->key;
-			}
-			stream << '\n';
+			stream << prefix << (tail ? prefix1 : prefix2) << *this << '\n';
 
 			if (right)
 				right->print(stream, prefix + (tail ? prefix3 : prefix4), !left);
@@ -136,87 +212,6 @@ class RedBlackTree final: public SearchTree<Key, Value>
 
 	NodePtr root;
 
-	void resolve_red_red_violation(Node *subtree)
-	{
-		if (!subtree || subtree->color == Node::Color::BLACK)
-			return;
-
-		auto parent = subtree->parent;
-		if (!parent)
-			return;
-
-		if (subtree == parent->left.get()) {
-			if (subtree->left && subtree->left->color == Node::Color::RED) {
-				auto left = std::move(subtree->left);
-				auto right = std::move(parent->left);
-				subtree->set_left(std::move(subtree->right));
-				subtree->set_right(std::move(parent->right));
-				parent->set_left(std::move(left));
-				parent->set_right(std::move(right));
-				parent->data.swap(parent->right->data);
-			} else if (subtree->right && subtree->right->color == Node::Color::RED) {
-				auto right = std::move(parent->right);
-				parent->set_right(std::move(subtree->right));
-				subtree->set_right(std::move(parent->right->left));
-				parent->right->set_left(std::move(parent->right->right));
-				parent->right->set_right(std::move(right));
-				parent->data.swap(parent->right->data);
-			} else {
-				return;
-			}
-		} else if (subtree == parent->right.get()) {
-			if (subtree->right && subtree->right->color == Node::Color::RED) {
-				auto left = std::move(std::move(parent->right));
-				auto right = std::move(subtree->right);
-				subtree->set_right(std::move(subtree->left));
-				subtree->set_left(std::move(parent->left));
-				parent->set_left(std::move(left));
-				parent->set_right(std::move(right));
-				parent->data.swap(parent->left->data);
-			} else if (subtree->left && subtree->left->color == Node::Color::RED) {
-				auto left = std::move(parent->left);
-				parent->set_left(std::move(subtree->left));
-				subtree->set_left(std::move(parent->left->right));
-				parent->left->set_right(std::move(parent->left->left));
-				parent->left->set_left(std::move(left));
-				parent->data.swap(parent->left->data);
-			} else {
-				return;
-			}
-		} else {
-			return;
-		}
-
-		parent->left->color = Node::Color::BLACK;
-		parent->right->color = Node::Color::BLACK;
-		parent->color = Node::Color::RED;
-		resolve_red_red_violation(parent->parent);
-	}
-
-	void insert_into_subtree(NodePtr &&subtree, NodePtr &&node)
-	{
-		if (!subtree)
-			return;
-
-		if (node->data->key <= subtree->data->key) {
-			if (!subtree->left) {
-				subtree->set_left(std::move(node));
-				if (subtree->color == Node::Color::RED)
-					resolve_red_red_violation(subtree.get());
-			} else {
-				insert_into_subtree(std::move(subtree->left), std::move(node));
-			}
-		} else {
-			if (!subtree->right) {
-				subtree->set_right(std::move(node));
-				if (subtree->color == Node::Color::RED)
-					resolve_red_red_violation(subtree.get());
-			} else {
-				insert_into_subtree(std::move(subtree->right), std::move(node));
-			}
-		}
-	}
-
 	template<typename KeyT, typename ValueT>
 	void insert_impl(KeyT &&key, ValueT &&value)
 	{
@@ -224,9 +219,7 @@ class RedBlackTree final: public SearchTree<Key, Value>
 
 		if (root) {
 			auto node = std::make_unique<Node>(std::move(data));
-			insert_into_subtree(std::move(root), std::move(node));
-			if (!root)
-				root = std::move(node);
+			root->insert(std::move(node));
 		} else {
 			root = std::make_unique<Node>(std::move(data));
 		}
@@ -246,7 +239,7 @@ class RedBlackTree final: public SearchTree<Key, Value>
 		return nullptr;
 	}
 
-	void remove_double_blackness(Node *node, Node *parent)
+	static void remove_double_blackness(Node *node, Node *parent)
 	{
 		if (!parent)
 			return;

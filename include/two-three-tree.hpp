@@ -115,6 +115,17 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			return right->min();
 		}
 
+		friend std::ostream &operator<<(std::ostream &stream, const Node &node)
+		{
+			stream << node.ldata->key;
+			if (node.rdata) {
+				stream << '|';
+				stream << node.rdata->key;
+			}
+
+			return stream;
+		}
+
 		void print(std::ostream &stream, const std::string &prefix, bool tail) const
 		{
 		#ifdef _WIN32
@@ -129,12 +140,7 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 			static const std::string prefix4 = "│   ";
 		#endif
 
-			stream << prefix << (tail ? prefix1 : prefix2) << ldata->key;
-			if (rdata) {
-				stream << '|';
-				stream << rdata->key;
-			}
-			stream << '\n';
+			stream << prefix << (tail ? prefix1 : prefix2) << *this << '\n';
 
 			if (right)
 				right->print(stream, prefix + (tail ? prefix3 : prefix4), !middle && !left);
