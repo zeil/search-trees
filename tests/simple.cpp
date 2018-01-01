@@ -4,7 +4,6 @@
 
 #include <functional>
 #include <iostream>
-#include <fstream>
 #include <assert.h>
 
 #include "two-three-tree.hpp"
@@ -59,17 +58,19 @@ static void big_test(SearchTreeFactory<int, int> factory)
 
 int main()
 {
-	//std::ofstream file("test.txt", std::ofstream::out);
-	//std::ostream &stream = file;
 	std::ostream &stream = std::cout;
 
-	//SearchTreeFactory<char, int> factory = TwoThreeTree<char, int>::create;
-	//SearchTreeFactory<char, int> factory = RedBlackTree<char, int>::create;
-	//visual_test(factory, stream);
+	SearchTreeFactory<char, int> char_factory = TwoThreeTree<char, int>::create;
+	stream << "2-3 tree:\n";
+	visual_test(char_factory, stream);
+	char_factory = RedBlackTree<char, int>::create;
+	stream << "\nRed-Black tree:\n";
+	visual_test(char_factory, stream);
 
-	//SearchTreeFactory<int, int> factory = TwoThreeTree<int, int>::create;
-	SearchTreeFactory<int, int> factory = RedBlackTree<int, int>::create;
-	big_test(factory);
+	SearchTreeFactory<int, int> int_factory = TwoThreeTree<int, int>::create;
+	big_test(int_factory);
+	int_factory = RedBlackTree<int, int>::create;
+	big_test(int_factory);
 
 #ifdef _WIN32
 	_CrtDumpMemoryLeaks();
