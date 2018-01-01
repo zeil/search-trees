@@ -158,7 +158,11 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 		if (!subtree)
 			return;
 
-		if (node->ldata->key <= subtree->ldata->key) {
+		if (node->ldata->key == subtree->ldata->key) {
+			subtree->ldata->value = std::move(node->ldata->value);
+		} else if (subtree->is_three() && node->ldata->key == subtree->rdata->key) {
+			subtree->rdata->value = std::move(node->ldata->value);
+		} else if (node->ldata->key < subtree->ldata->key) {
 			insert_into_subtree(std::move(subtree->left), std::move(node));
 			if (!node)
 				return;
@@ -176,7 +180,7 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 				subtree->set_right(std::move(right));
 				node = std::move(subtree);
 			}
-		} else if (subtree->is_three() && node->ldata->key <= subtree->rdata->key) {
+		} else if (subtree->is_three() && node->ldata->key < subtree->rdata->key) {
 			insert_into_subtree(std::move(subtree->middle), std::move(node));
 			if (!node)
 				return;
@@ -221,23 +225,6 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 		} else {
 			root = std::make_unique<Node>(std::move(data));
 		}
-	}
-
-	Value *find_impl(const Key &key) const
-	{
-		if (root) {
-			auto found = root->find(key);
-			auto node = found.first;
-			if (node) {
-				auto ldata = found.second;
-				if (ldata)
-					return &node->ldata->value;
-				else
-					return &node->rdata->value;
-			}
-		}
-
-		return nullptr;
 	}
 
 	void remove_hole(Node *hole)
@@ -411,14 +398,57 @@ public:
 		insert_impl(key, value);
 	}
 
-	const Value *find(const Key &key) const override final
-	{
-		return find_impl(key);
-	}
-
 	Value *find(const Key &key) override final
 	{
-		return find_impl(key);
+		if (root) {
+			auto found = root->find(key);
+			auto node = found.first;
+			if (node) {
+				auto ldata = found.second;
+				if (ldata)
+					return &node->ldata->value;
+				else
+					return &node->rdata->value;
+			}
+		}
+
+		return nullptr;
+	}
+
+	const Value *find(const Key &key) const override final
+	{
+		return find(key);
+	}
+
+	Value *min() override final
+	{
+		if (root)
+			return &root->min()->ldata->value;
+
+		return nullptr;
+	}
+
+	const Value *min() const override final
+	{
+		return min();
+	}
+
+	Value *max() override final
+	{
+		if (root) {
+			auto max = root->max();
+			if (max->is_three())
+				return &max->rdata->value;
+			else
+				return &max->ldata->value;
+		}
+
+		return nullptr;
+	}
+
+	const Value *max() const override final
+	{
+		return max();
 	}
 
 	bool remove(const Key &key) override final

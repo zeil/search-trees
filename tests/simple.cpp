@@ -45,6 +45,11 @@ static void big_test(SearchTreeFactory<int, int> factory)
 		assert(found && *found == 2 * i);
 	}
 
+	auto min = tree->min();
+	assert(min && *min == 2);
+	auto max = tree->max();
+	assert(max && *max == 2 * nodes_count);
+
 	for (int i = 1; i <= nodes_count; ++i) {
 		assert(tree->remove(i));
 		for (int j = 1; j <= i; ++j)

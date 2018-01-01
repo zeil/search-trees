@@ -99,7 +99,9 @@ class RedBlackTree final: public SearchTree<Key, Value>
 
 		void insert(NodePtr &&node)
 		{
-			if (node->data->key <= data->key) {
+			if (node->data->key == data->key) {
+				data->value = std::move(node->data->value);
+			} else if (node->data->key < data->key) {
 				if (!left) {
 					set_left(std::move(node));
 					resolve_red_red_violation(this);
@@ -226,17 +228,6 @@ class RedBlackTree final: public SearchTree<Key, Value>
 
 		if (root->color != Node::Color::BLACK)
 			root->color = Node::Color::BLACK;
-	}
-
-	Value *find_impl(const Key &key) const
-	{
-		if (root) {
-			auto node = root->find(key);
-			if (node)
-				return &node->data->value;
-		}
-
-		return nullptr;
 	}
 
 	static void remove_double_blackness(Node *node, Node *parent)
@@ -412,14 +403,46 @@ public:
 		insert_impl(key, value);
 	}
 
-	const Value *find(const Key &key) const override final
-	{
-		return find_impl(key);
-	}
-
 	Value *find(const Key &key) override final
 	{
-		return find_impl(key);
+		if (root) {
+			auto node = root->find(key);
+			if (node)
+				return &node->data->value;
+		}
+
+		return nullptr;
+	}
+
+	const Value *find(const Key &key) const override final
+	{
+		return find(key);
+	}
+
+	Value *min() override final
+	{
+		if (root)
+			return &root->min()->data->value;
+
+		return nullptr;
+	}
+
+	const Value *min() const override final
+	{
+		return min();
+	}
+
+	Value *max() override final
+	{
+		if (root)
+			return &root->max()->data->value;
+
+		return nullptr;
+	}
+
+	const Value *max() const override final
+	{
+		return max();
 	}
 
 	bool remove(const Key &key) override final
