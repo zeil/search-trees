@@ -58,6 +58,12 @@ static void big_test(SearchTreeFactory<int, int> factory)
 			auto found = tree->find(j);
 			assert(found && *found == 2 * j);
 		}
+		if (i < nodes_count) {
+			min = tree->min();
+			assert(min && *min == 2 * (i + 1));
+			max = tree->max();
+			assert(max && *max == 2 * nodes_count);
+		}
 	}
 }
 
