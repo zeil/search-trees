@@ -461,7 +461,7 @@ public:
 		if (root)
 			root->print(stream, "", true);
 		else
-			stream << "empty tree";
+			stream << "Empty tree";
 		stream << '\n';
 	}
 };
