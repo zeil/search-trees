@@ -174,14 +174,18 @@ class RedBlackTree final: public SearchTree<Key, Value>
 		friend std::ostream &operator<<(std::ostream &stream, const Node &node)
 		{
 			if (node.color == Color::RED) {
-			#ifdef _WIN32
-				HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-				SetConsoleTextAttribute(hConsole, 12);
-				stream << node.data->key;
-				SetConsoleTextAttribute(hConsole, 15);
-			#else
-				stream << "\033[31m" << node.data->key << "\033[0m";
-			#endif
+				if (&stream == &std::cout) {
+				#ifdef _WIN32
+					HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+					SetConsoleTextAttribute(hConsole, 12);
+					stream << node.data->key;
+					SetConsoleTextAttribute(hConsole, 15);
+				#else
+					stream << "\033[31m" << node.data->key << "\033[0m";
+				#endif
+				} else {
+					stream << node.data->key << " (red)";
+				}
 			} else {
 				stream << node.data->key;
 			}
