@@ -204,10 +204,13 @@ public:
 	}
 };
 
+using KeyT = int;
+using ValueT = int;
+
 int main(int argc, char *argv[])
 {
 	const char *tree_type, *input_file, *output_file = nullptr;
-	SearchTreePtr<int, int> tree;
+	SearchTreePtr<KeyT, ValueT> tree;
 
 	if (argc >= 3) {
 		tree_type = argv[1];
@@ -220,9 +223,9 @@ int main(int argc, char *argv[])
 	}
 
 	if (strcasecmp(tree_type, "rb") == 0) {
-		tree = RedBlackTree<int, int>::create();
+		tree = RedBlackTree<KeyT, ValueT>::create();
 	} else if (strcmp(tree_type, "23") == 0) {
-		tree = TwoThreeTree<int, int>::create();
+		tree = TwoThreeTree<KeyT, ValueT>::create();
 	} else {
 		std::cerr << "Invalid tree type '" << tree_type << "'. Available types: rb, 23\n";
 		return -1;
@@ -247,7 +250,7 @@ int main(int argc, char *argv[])
 
 	std::string line;
 	while (std::getline(ifs, line)) {
-		auto cmd = Command<int, int>::parse(line);
+		auto cmd = Command<KeyT, ValueT>::parse(line);
 		cmd->exec(tree, *os);
 	}
 
