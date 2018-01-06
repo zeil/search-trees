@@ -7,6 +7,14 @@
 #include "search-tree.hpp"
 #include "util.hpp"
 
+#ifdef min
+#undef min
+#endif
+
+#ifdef max
+#undef max
+#endif
+
 namespace search_trees
 {
 
@@ -234,6 +242,33 @@ class RedBlackTree final: public SearchTree<Key, Value>
 			root->color = Node::Color::BLACK;
 	}
 
+	Value *find_impl(const Key &key) const
+	{
+		if (root) {
+			auto node = root->find(key);
+			if (node)
+				return &node->data->value;
+		}
+
+		return nullptr;
+	}
+
+	Value *min_impl() const
+	{
+		if (root)
+			return &root->min()->data->value;
+
+		return nullptr;
+	}
+
+	Value *max_impl() const
+	{
+		if (root)
+			return &root->max()->data->value;
+
+		return nullptr;
+	}
+
 	static void remove_double_blackness(Node *node, Node *parent)
 	{
 		if (!parent)
@@ -409,44 +444,32 @@ public:
 
 	Value *find(const Key &key) override final
 	{
-		if (root) {
-			auto node = root->find(key);
-			if (node)
-				return &node->data->value;
-		}
-
-		return nullptr;
+		return find_impl(key);
 	}
 
 	const Value *find(const Key &key) const override final
 	{
-		return find(key);
+		return find_impl(key);
 	}
 
 	Value *min() override final
 	{
-		if (root)
-			return &root->min()->data->value;
-
-		return nullptr;
+		return min_impl();
 	}
 
 	const Value *min() const override final
 	{
-		return min();
+		return min_impl();
 	}
 
 	Value *max() override final
 	{
-		if (root)
-			return &root->max()->data->value;
-
-		return nullptr;
+		return max_impl();
 	}
 
 	const Value *max() const override final
 	{
-		return max();
+		return max_impl();
 	}
 
 	bool remove(const Key &key) override final

@@ -227,6 +227,44 @@ class TwoThreeTree final: public SearchTree<Key, Value>
 		}
 	}
 
+	Value *find_impl(const Key &key) const
+	{
+		if (root) {
+			auto found = root->find(key);
+			auto node = found.first;
+			if (node) {
+				auto ldata = found.second;
+				if (ldata)
+					return &node->ldata->value;
+				else
+					return &node->rdata->value;
+			}
+		}
+
+		return nullptr;
+	}
+
+	Value *min_impl() const
+	{
+		if (root)
+			return &root->min()->ldata->value;
+
+		return nullptr;
+	}
+
+	Value *max_impl() const
+	{
+		if (root) {
+			auto max = root->max();
+			if (max->is_three())
+				return &max->rdata->value;
+			else
+				return &max->ldata->value;
+		}
+
+		return nullptr;
+	}
+
 	void remove_hole(Node *hole)
 	{
 		auto parent = hole->parent;
@@ -400,55 +438,32 @@ public:
 
 	Value *find(const Key &key) override final
 	{
-		if (root) {
-			auto found = root->find(key);
-			auto node = found.first;
-			if (node) {
-				auto ldata = found.second;
-				if (ldata)
-					return &node->ldata->value;
-				else
-					return &node->rdata->value;
-			}
-		}
-
-		return nullptr;
+		return find_impl(key);
 	}
 
 	const Value *find(const Key &key) const override final
 	{
-		return find(key);
+		return find_impl(key);
 	}
 
 	Value *min() override final
 	{
-		if (root)
-			return &root->min()->ldata->value;
-
-		return nullptr;
+		return min_impl();
 	}
 
 	const Value *min() const override final
 	{
-		return min();
+		return min_impl();
 	}
 
 	Value *max() override final
 	{
-		if (root) {
-			auto max = root->max();
-			if (max->is_three())
-				return &max->rdata->value;
-			else
-				return &max->ldata->value;
-		}
-
-		return nullptr;
+		return max_impl();
 	}
 
 	const Value *max() const override final
 	{
-		return max();
+		return max_impl();
 	}
 
 	bool remove(const Key &key) override final

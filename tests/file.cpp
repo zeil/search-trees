@@ -42,22 +42,22 @@ public:
 		std::unique_ptr<Command> cmd;
 		std::string args;
 
-		if (strncasecmp(line.c_str(), "add", 3) == 0) {
+		if (strncmp(line.c_str(), "add", 3) == 0) {
 			cmd = std::make_unique<Add<Key, Value>>();
 			args = line.substr(3);
-		} else if (strncasecmp(line.c_str(), "delete", 6) == 0) {
+		} else if (strncmp(line.c_str(), "delete", 6) == 0) {
 			cmd = std::make_unique<Delete<Key, Value>>();
 			args = line.substr(6);
-		} else if (strncasecmp(line.c_str(), "search", 6) == 0) {
+		} else if (strncmp(line.c_str(), "search", 6) == 0) {
 			cmd = std::make_unique<Search<Key, Value>>();
 			args = line.substr(6);
-		} else if (strncasecmp(line.c_str(), "min", 3) == 0) {
+		} else if (strncmp(line.c_str(), "min", 3) == 0) {
 			cmd = std::make_unique<Min<Key, Value>>();
 			args = line.substr(3);
-		} else if (strncasecmp(line.c_str(), "max", 3) == 0) {
+		} else if (strncmp(line.c_str(), "max", 3) == 0) {
 			cmd = std::make_unique<Max<Key, Value>>();
 			args = line.substr(3);
-		} else if (strncasecmp(line.c_str(), "print", 5) == 0) {
+		} else if (strncmp(line.c_str(), "print", 5) == 0) {
 			cmd = std::make_unique<Print<Key, Value>>();
 			args = line.substr(5);
 		}
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	if (strcasecmp(tree_type, "rb") == 0) {
+	if (strcmp(tree_type, "rb") == 0) {
 		tree = RedBlackTree<KeyT, ValueT>::create();
 	} else if (strcmp(tree_type, "23") == 0) {
 		tree = TwoThreeTree<KeyT, ValueT>::create();
