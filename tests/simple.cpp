@@ -4,6 +4,9 @@
 
 #include <functional>
 #include <iostream>
+#include <vector>
+#include <random>
+#include <algorithm>
 #include <chrono>
 #include <assert.h>
 
@@ -37,11 +40,18 @@ static void big_test(SearchTreeFactory<int, int> factory, std::ostream &stream, 
 {
 	const int nodes_count = 1024 * 1024;
 
+	std::vector<int> elems(nodes_count);
+	for (int i = 1; i <= nodes_count; ++i)
+		elems[i - 1] = i - 1;
+	std::random_device rd;
+	std::mt19937 g(rd());
+	std::shuffle(elems.begin(), elems.end(), g);
+
 	auto start = std::chrono::high_resolution_clock::now();
 
 	auto tree = factory();
 	for (int i = 1; i <= nodes_count; ++i)
-		tree->insert(i, 2 * i);
+		tree->insert(elems[i - 1], 2 * elems[i - 1]);
 
 	auto finish = std::chrono::high_resolution_clock::now();
 	stream << "Creation of tree with " << nodes_count << " nodes took " << std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count() << " ms\n";
