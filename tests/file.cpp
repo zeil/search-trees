@@ -87,6 +87,7 @@ public:
 	void exec(const SearchTreePtr<Key, Value> &tree, std::ostream &os) override final
 	{
 		tree->insert(key, value);
+		os << "Inserted";
 	}
 
 private:
@@ -109,7 +110,11 @@ public:
 
 	void exec(const SearchTreePtr<Key, Value> &tree, std::ostream &os) override final
 	{
-		tree->remove(key);
+		if (tree->remove(key))
+			os << "Removed";
+		else
+			os << "Not found";
+		os << '\n';
 	}
 
 private:
